@@ -3,10 +3,12 @@ package cmd
 import (
 	"bufio"
 	"context"
+	"flag"
 	"fmt"
 	"log"
 	"net/http"
 	"os"
+	"regexp"
 	"strings"
 	"time"
 
@@ -14,6 +16,11 @@ import (
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 )
+
+type Pattern struct {
+	Match   string
+	IsRegex bool
+}
 
 func checkBucketPublic(bucketName string) bool {
 	req, err := http.NewRequest("GET", fmt.Sprintf("https://%s.s3.amazonaws.com/", bucketName), nil)
@@ -39,17 +46,37 @@ func checkBucketPublic(bucketName string) bool {
 	}
 }
 
-func listObjects(bucketName string) {
-	cfg, err := config.LoadDefaultConfig(context.TODO(),
-		config.WithRegion("us-east-1"),
-		config.WithCredentialsProvider(aws.AnonymousCredentials{}),
-	)
+func loadCommonFiles(filename string) ([]Pattern, error) {
+	file, err := os.Open(filename)
 	if err != nil {
-		log.Fatalf("failed to load config, %v", err)
+		return nil, fmt.Errorf("[-] Error opening common files list: %v", err)
+	}
+	defer file.Close()
+
+	var patterns []Pattern
+	scanner := bufio.NewScanner(file)
+	for scanner.Scan() {
+		pattern := scanner.Text()
+		isRegex := strings.HasPrefix(pattern, "regex:")
+
+		if isRegex {
+			pattern = strings.TrimPrefix(pattern, "regex:")
+		}
+
+		patterns = append(patterns, Pattern{
+			Match:   pattern,
+			IsRegex: isRegex,
+		})
 	}
 
-	svc := s3.NewFromConfig(cfg)
+	if err := scanner.Err(); err != nil {
+		return nil, fmt.Errorf("[-] Error reading common files list: %v", err)
+	}
 
+	return patterns, nil
+}
+
+func enumerateFiles(svc *s3.Client, bucketName string, patterns []Pattern) {
 	params := &s3.ListObjectsV2Input{
 		Bucket: aws.String(bucketName),
 	}
@@ -60,44 +87,48 @@ func listObjects(bucketName string) {
 	}
 
 	for _, item := range resp.Contents {
-		fmt.Println("Object:", *item.Key)
-	}
-}
-
-func enumerateCommonFiles(svc *s3.Client, bucketName string, commonFiles []string) {
-	for _, file := range commonFiles {
-		params := &s3.ListObjectsV2Input{
-			Bucket: aws.String(bucketName),
-			Prefix: aws.String(file),
-		}
-
-		resp, err := svc.ListObjectsV2(context.TODO(), params)
-		if err != nil {
-			fmt.Printf("[-] Error listing objects for '%s' in bucket '%s': %v\n", file, bucketName, err)
-			continue
-		}
-
-		for _, item := range resp.Contents {
-			if strings.Contains(*item.Key, file) {
-				fmt.Printf("[+] Found '%s' in bucket '%s'\n", *item.Key, bucketName)
+		for _, pattern := range patterns {
+			if pattern.IsRegex {
+				matched, err := regexp.MatchString(pattern.Match, *item.Key)
+				if err != nil {
+					fmt.Printf("[-] Error matching regex: %v\n", err)
+					continue
+				}
+				if matched {
+					fmt.Printf("[+] Found matching file '%s' in bucket '%s'\n", *item.Key, bucketName)
+				}
+			} else if strings.Contains(*item.Key, pattern.Match) {
+				fmt.Printf("[+] Found matching file '%s' in bucket '%s'\n", *item.Key, bucketName)
 			}
 		}
 	}
 }
 
 func runMain() {
-	if bucketName == "" {
-		fmt.Println("Error: You must provide a bucket name")
+	bucketName := flag.String("b", "", "The name of the S3 bucket")
+	sourceFile := flag.String("s", "", "External directory list file")
+	flag.Parse()
+
+	if *bucketName == "" {
+		fmt.Println("Error: You must provide a bucket name using the -b flag")
 		return
 	}
 
-	commonFiles, err := readFiles("common-files.txt")
+	var commonFilesPatterns []Pattern
+	var err error
+
+	if *sourceFile != "" {
+		commonFilesPatterns, err = loadCommonFiles(*sourceFile)
+	} else {
+		commonFilesPatterns, err = loadCommonFiles("config/common-files.txt")
+	}
+
 	if err != nil {
-		fmt.Println(err)
+		fmt.Println("[-] Error loading common files:", err)
 		return
 	}
-	if checkBucketPublic(bucketName) {
 
+	if checkBucketPublic(*bucketName) {
 		cfg, err := config.LoadDefaultConfig(context.TODO(),
 			config.WithRegion("us-east-1"),
 			config.WithCredentialsProvider(aws.AnonymousCredentials{}),
@@ -107,27 +138,6 @@ func runMain() {
 		}
 		svc := s3.NewFromConfig(cfg)
 
-		//listObjects(bucketName)
-		enumerateCommonFiles(svc, bucketName, commonFiles)
+		enumerateFiles(svc, *bucketName, commonFilesPatterns)
 	}
-}
-
-func readFiles(filePath string) ([]string, error) {
-	file, err := os.Open(filePath)
-	if err != nil {
-		return nil, fmt.Errorf("[-] Error opening sensitive files list: %v", err)
-	}
-	defer file.Close()
-
-	var commonFiles []string
-	scanner := bufio.NewScanner(file)
-	for scanner.Scan() {
-		commonFiles = append(commonFiles, scanner.Text())
-	}
-
-	if err := scanner.Err(); err != nil {
-		return nil, fmt.Errorf("[-] Error reading common files list: %v", err)
-	}
-
-	return commonFiles, nil
 }
