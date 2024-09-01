@@ -1,6 +1,8 @@
 # S3Khoj
 
-S3Khoj, S3 inspector tool that help pentesters to extract juicy information from the public accessible S3 buckets.
+[S3Khoj](https://github.com/ajutamangdev/S3Khoj), is a robust tool designed to help detect sensitive files at AWS public S3 buckets. "Khoj", a Nepali word meaning search or explore, perfectly encapsulates the tool's functionality for searching sensitive files within them.
+
+Blog about [S3Khoj](https://csaju.com/posts/hunting-secrets-at-public-s3-buckets-using-s3khoj/).
 
 # Installation
 
