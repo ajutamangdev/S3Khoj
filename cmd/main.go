@@ -3,11 +3,13 @@ package cmd
 import (
 	"bufio"
 	"context"
+	"crypto/tls"
 	"flag"
 	"fmt"
 	"log"
 	"net/http"
 	"os"
+	"os/exec"
 	"regexp"
 	"strings"
 	"time"
@@ -22,6 +24,14 @@ type Pattern struct {
 	IsRegex bool
 }
 
+func createInsecureHTTPClient() *http.Client {
+	//  skips certificate verification
+	tr := &http.Transport{
+		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+	}
+	return &http.Client{Transport: tr, Timeout: 10 * time.Second}
+}
+
 func checkBucketPublic(bucketName string) bool {
 	req, err := http.NewRequest("GET", fmt.Sprintf("https://%s.s3.amazonaws.com/", bucketName), nil)
 	if err != nil {
@@ -29,7 +39,7 @@ func checkBucketPublic(bucketName string) bool {
 		return false
 	}
 
-	client := &http.Client{Timeout: 10 * time.Second}
+	client := createInsecureHTTPClient()
 	resp, err := client.Do(req)
 	if err != nil {
 		fmt.Printf("[-] Error making request: %v\n", err)
@@ -39,6 +49,9 @@ func checkBucketPublic(bucketName string) bool {
 
 	if resp.StatusCode == http.StatusOK {
 		fmt.Printf("[+] Bucket '%s' is publicly accessible.\n", bucketName)
+		return true
+	} else if resp.StatusCode == http.StatusForbidden {
+		fmt.Printf("[+] Bucket '%s' is publicly accessible but access is restricted. Status code: %d\n", bucketName, resp.StatusCode)
 		return true
 	} else {
 		fmt.Printf("[-] Bucket '%s' is not publicly accessible. Status code: %d\n", bucketName, resp.StatusCode)
@@ -83,24 +96,38 @@ func enumerateFiles(svc *s3.Client, bucketName string, patterns []Pattern) {
 
 	resp, err := svc.ListObjectsV2(context.TODO(), params)
 	if err != nil {
-		log.Fatalf("Failed to list objects: %v", err)
-	}
+		fmt.Printf("[-] Failed to list objects: %v\n", err)
+		if strings.Contains(err.Error(), "AccessDenied") {
+			fmt.Printf("[!] Access Denied: The bucket '%s' may be restricted despite being publicly accessible.\n", bucketName)
+			fmt.Printf("[!] Verifying public access using AWS CLI: aws s3 ls %s --no-sign-request\n", bucketName)
 
-	for _, item := range resp.Contents {
-		for _, pattern := range patterns {
-			if pattern.IsRegex {
-				matched, err := regexp.MatchString(pattern.Match, *item.Key)
-				if err != nil {
-					fmt.Printf("[-] Error matching regex: %v\n", err)
-					continue
-				}
-				if matched {
-					fmt.Printf("[+] Found matching file '%s' in bucket '%s'\n", *item.Key, bucketName)
-				}
-			} else if strings.Contains(*item.Key, pattern.Match) {
-				fmt.Printf("[+] Found matching file '%s' in bucket '%s'\n", *item.Key, bucketName)
+			// Execute AWS CLI command
+			cmd := exec.Command("aws", "s3", "ls", fmt.Sprintf("s3://%s", bucketName), "--no-sign-request")
+			output, err := cmd.CombinedOutput()
+			if err != nil {
+				fmt.Printf("[-] Error executing AWS CLI command: %v\n", err)
+			} else {
+				fmt.Printf("[+] AWS CLI output:\n%s\n", output)
 			}
 		}
+	} else {
+		for _, item := range resp.Contents {
+			for _, pattern := range patterns {
+				if pattern.IsRegex {
+					matched, err := regexp.MatchString(pattern.Match, *item.Key)
+					if err != nil {
+						fmt.Printf("[-] Error matching regex: %v\n", err)
+						continue
+					}
+					if matched {
+						fmt.Printf("[+] Found matching file '%s' in bucket '%s'\n", *item.Key, bucketName)
+					}
+				} else if strings.Contains(*item.Key, pattern.Match) {
+					fmt.Printf("[+] Found matching file '%s' in bucket '%s'\n", *item.Key, bucketName)
+				}
+			}
+		}
+
 	}
 }
 
