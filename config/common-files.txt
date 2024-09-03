@@ -31,3 +31,4 @@ tar.gz
 .inc
 tmp
 temp
+.html

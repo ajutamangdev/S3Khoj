@@ -24,6 +24,16 @@ type Pattern struct {
 	IsRegex bool
 }
 
+var regions = []string{
+	"us-east-1", "us-east-2", "us-west-1", "us-west-2",
+	"af-south-1", "ap-east-1", "ap-south-1", "ap-northeast-1",
+	"ap-northeast-2", "ap-northeast-3", "ap-southeast-1",
+	"ap-southeast-2", "ca-central-1", "cn-north-1", "cn-northwest-1",
+	"eu-central-1", "eu-west-1", "eu-west-2", "eu-west-3",
+	"eu-north-1", "eu-south-1", "me-south-1", "sa-east-1",
+	"us-gov-east-1", "us-gov-west-1",
+}
+
 func createInsecureHTTPClient() *http.Client {
 	//  skips certificate verification
 	tr := &http.Transport{
@@ -156,15 +166,26 @@ func runMain() {
 	}
 
 	if checkBucketPublic(*bucketName) {
-		cfg, err := config.LoadDefaultConfig(context.TODO(),
-			config.WithRegion("us-east-1"),
-			config.WithCredentialsProvider(aws.AnonymousCredentials{}),
-		)
-		if err != nil {
-			log.Fatalf("failed to load config, %v", err)
-		}
-		svc := s3.NewFromConfig(cfg)
+		for _, region := range regions {
+			cfg, err := config.LoadDefaultConfig(context.TODO(),
+				config.WithRegion(region),
+				config.WithCredentialsProvider(aws.AnonymousCredentials{}),
+			)
+			if err != nil {
+				log.Printf("failed to load config for region %s, %v", region, err)
+				continue
+			}
 
-		enumerateFiles(svc, *bucketName, commonFilesPatterns)
+			svc := s3.NewFromConfig(cfg)
+
+			_, err = svc.HeadBucket(context.TODO(), &s3.HeadBucketInput{
+				Bucket: bucketName,
+			})
+			if err == nil {
+				fmt.Printf("Bucket found in region %s\n", region)
+				enumerateFiles(svc, *bucketName, commonFilesPatterns)
+				break
+			}
+		}
 	}
 }
