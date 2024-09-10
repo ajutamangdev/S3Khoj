@@ -9,7 +9,8 @@ Blog about [S3Khoj](https://csaju.com/posts/hunting-secrets-at-public-s3-buckets
 ```
 git clone https://github.com/ajutamangdev/S3Khoj
 cd S3Khoj
-make install
+make build
+./S3Khoj -h
 ```
 > Ensure you have installed go in your machine.
 
