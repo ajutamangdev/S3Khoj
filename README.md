@@ -25,8 +25,10 @@ Usage:
 
 Flags:
   -b, --bucket string   Name of the s3 bucket to check
+  -d, --download        Download all public files
   -h, --help            help for S3Khoj
-  -s, --source string   External directory list file
+  -o, --output string   Output format: text, json, csv, or html (default "text")
+  -w, --source string   Custom Wordlist configuration file
 
 ```
 
@@ -37,5 +39,5 @@ S3Khoj -b name-of-the-bucket
 
 For Custom regex configuration
 ```
-S3Khoj -b name-of-the-bucket -s custom-config.txt
+S3Khoj -b name-of-the-bucket -w custom-config.txt
 ```
