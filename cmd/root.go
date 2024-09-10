@@ -23,6 +23,8 @@ S3 inspector tool that help pentesters to extract juicy information from the pub
 var (
 	bucketName       string
 	externalFileList string
+	outputFormat     string
+	downloadFiles    bool // Make sure this is defined as bool
 )
 
 var rootCmd = &cobra.Command{
@@ -37,7 +39,9 @@ var rootCmd = &cobra.Command{
 
 func init() {
 	rootCmd.PersistentFlags().StringVarP(&bucketName, "bucket", "b", "", "Name of the s3 bucket to check")
-	rootCmd.PersistentFlags().StringVarP(&externalFileList, "source", "s", "", "External directory list file")
+	rootCmd.PersistentFlags().StringVarP(&externalFileList, "source", "w", "", "Custom Wordlist configuration file")
+	rootCmd.PersistentFlags().StringVarP(&outputFormat, "output", "o", "text", "Output format: text, json, csv, or html")
+	rootCmd.PersistentFlags().BoolVarP(&downloadFiles, "download", "d", false, "Download all public files")
 }
 
 func Execute() {
