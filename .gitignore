@@ -2,3 +2,4 @@ main
 *.json
 *.csv
 *.html
+.DS_Store
