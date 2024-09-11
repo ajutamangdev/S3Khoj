@@ -20,7 +20,7 @@ jobs:
           id: build-docker-image
           run: |
             ls -la 
-            docker build -t docker push ${{secrets.DOCKERHUB_USERNAME}}/s3khoj:latest
+            docker build -t ${{secrets.DOCKERHUB_USERNAME}}/s3khoj:latest
         - name: push the docker image
           id: push-docker-image
           run: docker push ${{secrets.DOCKERHUB_USERNAME}}/s3khoj:latest
