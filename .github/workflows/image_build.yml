@@ -1,26 +1,26 @@
-name: Build Docker Image
+name: Build and Push Docker Image
 on:
   push:
     branches:
       - main
+
 jobs:
-    build:
-      name: push docker image to docker hub
-      runs-on: ubuntu-latest
-      steps:
-        - uses: actions/checkout@v2
-        - name: login to docker hub
-          id: docker-hub
-          env:
-            username: ${{secrets.DOCKERHUB_USERNAME}}
-            password: ${{secrets.DOCKERHUB_PASSWORD}}
-          run: |
-            docker login -u $username -p $password 
-        - name: build the docker image
-          id: build-docker-image
-          run: |
-            ls -la 
-            docker build -t ${{secrets.DOCKERHUB_USERNAME}}/s3khoj:latest
-        - name: push the docker image
-          id: push-docker-image
-          run: docker push ${{secrets.DOCKERHUB_USERNAME}}/s3khoj:latest
+  build:
+    name: Push Docker Image to Docker Hub
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_PASSWORD }}
+
+      - name: Build the Docker image
+        run: |
+          docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/s3khoj:latest .
+
+      - name: Push the Docker image
+        run: |
+          docker push ${{ secrets.DOCKERHUB_USERNAME }}/s3khoj:latest
