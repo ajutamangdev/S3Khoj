@@ -28,10 +28,10 @@ jobs:
       run: npm install semantic-release @semantic-release/changelog @semantic-release/github @semantic-release/git
 
     - name: Run semantic-release
+      run: npx semantic-release
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      run: npx semantic-release
-
+      
     - name: Set up Go
       uses: actions/setup-go@v3
       with:
@@ -44,4 +44,4 @@ jobs:
         version: latest
         args: release --clean
       env:
-          GITHUB_TOKEN: ${{ secrets. }}
+          GITHUB_TOKEN: ${{ secrets.S3Khoj_GITHUB_TOKEN }}
