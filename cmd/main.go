@@ -114,31 +114,6 @@ func enumerateFiles(svc *s3.Client, bucketName string, patterns []Pattern) Resul
 	return result
 }
 
-// func DownloadPublicFiles(result Result, svc *s3.Client) error {
-// 	rootDir := "downloads"
-// 	bucketDir := filepath.Join(rootDir, result.BucketName)
-
-// 	if err := os.MkdirAll(bucketDir, 0755); err != nil {
-// 		return fmt.Errorf("failed to create directory: %v", err)
-// 	}
-
-// 	for _, file := range result.Files {
-// 		// Download logic here
-// 		filePath := filepath.Join(bucketDir, file)
-// 		dirPath := filepath.Dir(filePath)
-
-// 		if err := os.MkdirAll(dirPath, 0755); err != nil {
-// 			fmt.Printf("Error creating directory for file %s: %v\n", file, err)
-// 			continue
-// 		}
-
-// 		// Implement file download logic here
-// 		// Use svc to download the file and save it to filePath
-// 	}
-
-// 	return nil
-// }
-
 func runMain() {
 	bucketName := flag.String("b", "", "The name of the S3 bucket")
 	sourceFile := flag.String("w", "", "Custom Wordlist configuration file")
