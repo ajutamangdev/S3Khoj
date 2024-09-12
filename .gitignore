@@ -3,3 +3,5 @@ main
 *.csv
 *.html
 .DS_Store
+dist/
+./dist
