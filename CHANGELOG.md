@@ -1,3 +1,10 @@
+## [1.0.2](https://github.com/ajutamangdev/S3Khoj/compare/v1.0.1...v1.0.2) (2024-09-12)
+
+
+### Bug Fixes
+
+* add node_modules in the ignore file ([7f9cbe5](https://github.com/ajutamangdev/S3Khoj/commit/7f9cbe587974d6e2c7aea471c0cf1ed037eef65d))
+
 # 1.0.0 (2024-09-12)
 
 
