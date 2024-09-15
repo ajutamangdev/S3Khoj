@@ -1,3 +1,10 @@
+# [1.1.0](https://github.com/ajutamangdev/S3Khoj/compare/v1.0.3...v1.1.0) (2024-09-15)
+
+
+### Features
+
+* add stale action ([8fa97ba](https://github.com/ajutamangdev/S3Khoj/commit/8fa97bad334389d4bcd9b50c9b17509f0c50ad11))
+
 ## [1.0.3](https://github.com/ajutamangdev/S3Khoj/compare/v1.0.2...v1.0.3) (2024-09-15)
 
 
