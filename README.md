@@ -59,7 +59,7 @@ S3Khoj -b name-of-the-bucket
 
 If you are running from Docker, you have to mount the volumes.
 ```
-docker run -v $(pwd):/app -w /app s3 -b test1011hify -o html
+docker run -v $(pwd):/app -w /app s3 -b bucket-name -o html
 ```
 
 For Custom regex configuration
