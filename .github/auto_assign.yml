@@ -1,0 +1,7 @@
+addReviewers: true
+reviewers:
+  - ajutamangdev
+
+numberOfReviewers: 1
+skipKeywords:
+  - '@dependabot'
