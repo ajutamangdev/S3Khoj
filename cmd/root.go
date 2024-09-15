@@ -16,7 +16,7 @@ func printBanner() {
 /_______  //______  /____|__ \___|  /\____/\__|  |
         \/        \/        \/    \/      \______|
 
-S3 inspector tool that help pentesters to extract juicy information from the public accessible S3 buckets.
+S3Khoj is a robust tool designed for pentesters to extract juicy information from the public accessible S3 buckets
 	`)
 }
 
@@ -24,7 +24,7 @@ var (
 	bucketName       string
 	externalFileList string
 	outputFormat     string
-	downloadFiles    bool // Make sure this is defined as bool
+	downloadFiles    bool
 )
 
 var rootCmd = &cobra.Command{

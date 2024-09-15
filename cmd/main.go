@@ -150,7 +150,7 @@ func runMain() {
 
 	result.IsPublic = checkBucketPublic(*bucketName)
 
-	var svc *s3.Client // Declare svc here
+	var svc *s3.Client
 
 	if result.IsPublic {
 		for _, region := range regions {
@@ -163,7 +163,7 @@ func runMain() {
 				continue
 			}
 
-			svc = s3.NewFromConfig(cfg) // Assign svc here
+			svc = s3.NewFromConfig(cfg)
 
 			_, err = svc.HeadBucket(context.TODO(), &s3.HeadBucketInput{
 				Bucket: bucketName,
