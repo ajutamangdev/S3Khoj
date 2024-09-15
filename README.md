@@ -22,12 +22,12 @@ make build
 ```
 > Ensure you have installed go in your machine for the build process.
 
-Build S3khoj uusing Docker locally
+Build <b>S3khoj</b> uusing Docker locally
 ```
 docker build -t S3Khoj .
 ```
 
-Pull S3Khoj docker image using DockerHub
+Pull <b>S3khoj</b> docker image using DockerHub
 ```
 docker pull ajutamangdev/s3khoj 
 ```
@@ -69,4 +69,4 @@ S3Khoj -b name-of-the-bucket -w custom-config.txt
 
 ### License
 
-S3Khoj is distributed under [MIT License](https://github.com/ajutamangdev/S3Khoj/blob/main/LICENSE)
+<b>S3khoj</b> is distributed under [MIT License](https://github.com/ajutamangdev/S3Khoj/blob/main/LICENSE)
