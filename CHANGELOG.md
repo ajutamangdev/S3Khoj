@@ -1,3 +1,10 @@
+## [1.0.3](https://github.com/ajutamangdev/S3Khoj/compare/v1.0.2...v1.0.3) (2024-09-15)
+
+
+### Bug Fixes
+
+* remove exclue of gorlease config ([17d0169](https://github.com/ajutamangdev/S3Khoj/commit/17d01695ebcc5f9add4f10b5327e50222e399ce5))
+
 ## [1.0.2](https://github.com/ajutamangdev/S3Khoj/compare/v1.0.1...v1.0.2) (2024-09-12)
 
 
